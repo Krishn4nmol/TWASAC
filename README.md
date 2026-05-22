@@ -426,9 +426,13 @@ https://github.com/Krishn4nmol/CASR_Project
 ## Author
 
 **Anmol Krishna**
+
 Student Researcher
+
 KIIT University, Bhubaneswar, India
+
 GitHub: [Krishn4nmol](https://github.com/Krishn4nmol)
+
 Email: anmolkrishna80@gmail.com
 
 ---
