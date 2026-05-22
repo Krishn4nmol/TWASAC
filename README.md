@@ -24,7 +24,7 @@
 
 
 
-![Beats CASR](https://img.shields.io/badge/Beats%20CASR-16--21%20pp-red)
+![Beats CASR](https://img.shields.io/badge/Beats%20CASR-16--18%20pp-red)
 
 
 
@@ -41,7 +41,7 @@ TASCAR replaces CASR's PPO reinforcement learning agent with:
 - **Soft Actor-Critic (SAC)** for better exploration
 - **Dynamic reward adaptation** instead of fixed theta
 
-> **Result:** TASCAR reduces cold start rate by **16 to 21
+> **Result:** TASCAR reduces cold start rate by **16 to 18
 > percentage points** compared to CASR while maintaining
 > **zero wasted memory time** across all workloads!
 

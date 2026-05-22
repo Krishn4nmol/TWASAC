@@ -14,10 +14,6 @@ data/
 trained_model/
 trained_model_tascar/
 
-# Results
-results/
-results_tascar/
-
 # Environment files
 .env
 
