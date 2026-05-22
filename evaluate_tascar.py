@@ -1,8 +1,8 @@
 # evaluate_tascar.py
 # Compares CASR vs TASCAR
-# Uses TASCAR_DELTA for TASCAR
-# Uses DELTA for CASR
-# Fair comparison!
+# CASR uses DELTA = 10000
+# TASCAR uses TASCAR_EVAL_DELTA = 10000
+# Same frequency = fair comparison!
 
 import numpy as np
 import json
@@ -19,6 +19,7 @@ from config import (
     EVAL_CALLS,
     DELTA,
     TASCAR_DELTA,
+    TASCAR_EVAL_DELTA,
     SEQUENCE_LENGTH,
     TRANSFORMER_DIM,
     TASCAR_MODEL_PATH,
@@ -41,14 +42,14 @@ from ppo_agent import PPOAgent
 
 # ─────────────────────────────────────────
 # CASR ALGORITHM
-# Uses original DELTA = 10000
-# Loaded from CASR trained model
+# Uses DELTA = 10000 (original!)
 # ─────────────────────────────────────────
 
 class CASRAlgorithm:
     """
     CASR with trained PPO model.
     Uses DELTA = 10000 (original!)
+    10 decisions per workload!
     """
     def __init__(self,
                  model_path=None):
@@ -130,8 +131,9 @@ class CASRAlgorithm:
 
 # ─────────────────────────────────────────
 # TASCAR ALGORITHM
-# Uses TASCAR_DELTA = 1000
-# More frequent decisions!
+# Uses TASCAR_EVAL_DELTA = 10000
+# Same frequency as CASR!
+# Fair comparison!
 # ─────────────────────────────────────────
 
 class TASCARAlgorithm:
@@ -139,13 +141,17 @@ class TASCARAlgorithm:
     TASCAR with trained SAC +
     Transformer.
 
-    Uses TASCAR_DELTA = 1000
-    Makes 100 decisions per workload
-    vs CASR 10 decisions per workload!
+    KEY FIX:
+    Uses TASCAR_EVAL_DELTA = 10000
+    during evaluation!
+    Same as CASR DELTA!
 
-    More frequent decisions +
-    Temporal state encoding =
-    Better performance!
+    This ensures fair comparison!
+    Both make same number of decisions!
+
+    Training used TASCAR_DELTA = 1000
+    for more learning steps.
+    Evaluation uses 10000 for stability!
     """
     def __init__(self,
                  model_path=None):
@@ -192,9 +198,11 @@ class TASCARAlgorithm:
                        function_call):
         self.call_count += 1
 
-        # TASCAR uses smaller delta!
+        # Use EVAL DELTA = 10000!
+        # Same as CASR!
+        # Fair comparison!
         if (self.call_count %
-                TASCAR_DELTA == 0):
+                TASCAR_EVAL_DELTA == 0):
 
             raw_state = np.array(
                 self.scache.get_state(),
@@ -214,6 +222,7 @@ class TASCARAlgorithm:
                 self.agent
                 .get_encoded_state(seq))
 
+            # Best action only!
             action = (
                 self.agent
                 .choose_action(
@@ -252,7 +261,7 @@ def load_workloads():
 
     print("\nPreparing workloads...")
 
-    # Common
+    # Common workload
     print("  Loading Common...")
     day1   = loader.load_day(1)
     counts = Counter(
@@ -276,14 +285,15 @@ def load_workloads():
     workloads['Common'] = common
     print(f"    {len(common)} calls")
 
-    # Significant
+    # Significant workload
     print("  Loading Significant...")
     day2  = loader.load_day(2)
     heavy = [
         c for c in day2
         if c.cold_start_overhead > 1]
     counts = Counter(
-        c.function_id for c in heavy)
+        c.function_id
+        for c in heavy)
     top = set(
         f for f, _ in
         counts.most_common(
@@ -306,14 +316,16 @@ def load_workloads():
     print(
         f"    {len(significant)} calls")
 
-    # Random
+    # Random workload
     print("  Loading Random...")
     day3  = loader.load_day(3)
     funcs = list(set(
-        c.function_id for c in day3))
+        c.function_id
+        for c in day3))
     np.random.seed(123)
     np.random.shuffle(funcs)
-    selected  = set(funcs[:NUM_FUNCTIONS])
+    selected  = set(
+        funcs[:NUM_FUNCTIONS])
     random_wl = [
         c for c in day3
         if c.function_id in selected]
@@ -325,7 +337,8 @@ def load_workloads():
             replace=False)
         idx.sort()
         random_wl = [
-            random_wl[i] for i in idx]
+            random_wl[i]
+            for i in idx]
     workloads['Random'] = random_wl
     print(f"    {len(random_wl)} calls")
 
@@ -345,6 +358,9 @@ def run_evaluation():
     results   = {}
 
     print("\nStarting evaluation...")
+    print(f"CASR eval delta:   {DELTA}")
+    print(f"TASCAR eval delta: "
+          f"{TASCAR_EVAL_DELTA}")
     print("=" * 55)
 
     for wl_idx, (wl_name, calls) in (
@@ -356,11 +372,13 @@ def run_evaluation():
         print("-" * 40)
 
         if wl_idx > 0:
-            secs = COOLING_BETWEEN_WORKLOADS
+            secs = (
+                COOLING_BETWEEN_WORKLOADS)
             print(
                 f"\nCooling CPU "
                 f"{secs}s...")
-            for i in range(secs // 10):
+            for i in range(
+                    secs // 10):
                 remaining = (
                     secs - (i * 10))
                 print(
@@ -399,8 +417,10 @@ def run_evaluation():
                 'avg_cold_start_overhead': 0}
 
         # Cool between algorithms
-        secs = COOLING_BETWEEN_ALGORITHMS
-        print(f"\n  Cooling {secs}s...")
+        secs = (
+            COOLING_BETWEEN_ALGORITHMS)
+        print(
+            f"\n  Cooling {secs}s...")
         time.sleep(secs)
 
         # Run TASCAR
@@ -491,15 +511,18 @@ def print_summary(results):
         casr_cold = (
             results[wl]
             .get('CASR', {})
-            .get('cold_start_rate', 0))
+            .get('cold_start_rate',
+                 0))
         tascar_cold = (
             results[wl]
             .get('TASCAR', {})
-            .get('cold_start_rate', 0))
+            .get('cold_start_rate',
+                 0))
 
         for algo in [
                 'CASR', 'TASCAR']:
-            if algo not in results[wl]:
+            if algo not in (
+                    results[wl]):
                 continue
             m = results[wl][algo]
 
@@ -528,8 +551,10 @@ def print_summary(results):
                 f"{result:>14}")
 
     print("\npp = percentage points")
-    print("✅ = TASCAR better than CASR")
-    print("❌ = TASCAR worse than CASR")
+    print(
+        "✅ = TASCAR better than CASR")
+    print(
+        "❌ = TASCAR worse than CASR")
 
 
 # ─────────────────────────────────────────
@@ -549,8 +574,11 @@ def plot_comparison(results):
     fig, axes = plt.subplots(
         1, 3, figsize=(16, 6))
     fig.suptitle(
-        'CASR vs TASCAR Comparison',
-        fontsize=14,
+        'CASR vs TASCAR Comparison\n'
+        f'(CASR delta={DELTA}, '
+        f'TASCAR eval delta='
+        f'{TASCAR_EVAL_DELTA})',
+        fontsize=13,
         fontweight='bold')
 
     metrics_info = [
@@ -572,7 +600,8 @@ def plot_comparison(results):
             metrics_info):
 
         ax    = axes[ax_idx]
-        x     = np.arange(len(workloads))
+        x     = np.arange(
+            len(workloads))
         width = 0.35
 
         for i, algo in enumerate(
@@ -599,7 +628,8 @@ def plot_comparison(results):
                     bars, values):
                 ax.text(
                     bar.get_x() +
-                    bar.get_width() / 2,
+                    bar.get_width() /
+                    2,
                     bar.get_height() +
                     0.1,
                     f'{val:.2f}',
@@ -626,7 +656,8 @@ def plot_comparison(results):
         dpi=150,
         bbox_inches='tight')
     plt.close()
-    print(f"Graph saved: {save_path}")
+    print(
+        f"Graph saved: {save_path}")
 
 
 # ─────────────────────────────────────────
@@ -637,6 +668,9 @@ if __name__ == "__main__":
     print("=" * 55)
     print("TASCAR Evaluation")
     print("Comparing CASR vs TASCAR")
+    print(f"CASR delta:        {DELTA}")
+    print(f"TASCAR eval delta: "
+          f"{TASCAR_EVAL_DELTA}")
     print("=" * 55)
 
     tascar_path = (
@@ -646,6 +680,7 @@ if __name__ == "__main__":
         print(
             "\n❌ TASCAR model not found!")
         print(
-            "Run: python train_tascar.py")
+            "Run: "
+            "python train_tascar.py")
     else:
         run_evaluation()

@@ -92,7 +92,6 @@ DROPOUT_RATE       = 0.1
 
 # ─────────────────────────────────────────
 # TASCAR: SAC SETTINGS
-# Tuned for serverless scheduling!
 # ─────────────────────────────────────────
 SAC_ALPHA            = 0.2
 SAC_TAU              = 0.005
@@ -108,13 +107,12 @@ TARGET_ENTROPY       = -1.0
 SAC_UPDATES_PER_STEP = 10
 
 # ─────────────────────────────────────────
-# TASCAR: DELTA
-# Smaller than CASR DELTA!
-# More decisions = more learning!
-# CASR:   10000 (10 steps/episode)
-# TASCAR:  1000 (100 steps/episode)
+# TASCAR: DELTA SETTINGS
+# Training uses small delta = more steps
+# Evaluation uses same as CASR = fair!
 # ─────────────────────────────────────────
-TASCAR_DELTA = 1000
+TASCAR_DELTA      = 1000
+TASCAR_EVAL_DELTA = 10000
 
 # ─────────────────────────────────────────
 # TASCAR: DYNAMIC REWARD SETTINGS
@@ -125,7 +123,8 @@ THETA_ADAPT_RATE = 0.01
 
 # ─────────────────────────────────────────
 # TASCAR: TRAINING SETTINGS
+# 500 episodes for better learning!
 # ─────────────────────────────────────────
-TASCAR_EPISODES   = 200
+TASCAR_EPISODES   = 500
 TASCAR_MODEL_PATH = "trained_model_tascar/"
 TASCAR_RESULTS    = "results_tascar/"
