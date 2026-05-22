@@ -1,7 +1,7 @@
 # sac_agent.py
 # Soft Actor-Critic Agent for TASCAR
-# Replaces PPO with better exploration
-# and sample efficiency
+# Fixed with gradient clipping
+# and NaN protection!
 
 import torch
 import torch.nn as nn
@@ -32,9 +32,9 @@ from config import (
 
 # ─────────────────────────────────────────
 # REPLAY BUFFER
-# Off-policy buffer stores past experiences
-# SAC reuses old experiences unlike PPO!
-# More sample efficient!
+# Off-policy buffer
+# SAC reuses old experiences!
+# More sample efficient than PPO!
 # ─────────────────────────────────────────
 
 class ReplayBuffer:
@@ -42,34 +42,42 @@ class ReplayBuffer:
     Off-policy replay buffer.
 
     Key difference from PPO:
-    PPO clears buffer after each update
+    PPO clears buffer after update
     SAC KEEPS all experiences!
     Randomly samples from all past data!
 
-    This makes SAC much more
-    sample efficient than PPO!
+    More sample efficient!
     """
     def __init__(self, capacity):
         self.buffer = deque(
             maxlen=capacity)
 
-    def push(self, state, action,
-             reward, next_state, done):
+    def push(self,
+             state,
+             action,
+             reward,
+             next_state,
+             done):
         self.buffer.append((
-            np.array(state,
-                     dtype=np.float32),
+            np.array(
+                state,
+                dtype=np.float32),
             int(action),
             float(reward),
-            np.array(next_state,
-                     dtype=np.float32),
+            np.array(
+                next_state,
+                dtype=np.float32),
             float(done)))
 
     def sample(self, batch_size):
         batch = random.sample(
             self.buffer,
             batch_size)
-        (states, actions, rewards,
-         next_states, dones) = zip(*batch)
+        (states,
+         actions,
+         rewards,
+         next_states,
+         dones) = zip(*batch)
 
         return (
             torch.FloatTensor(
@@ -87,32 +95,30 @@ class ReplayBuffer:
         return len(self.buffer)
 
     def is_ready(self, batch_size):
-        return len(self.buffer) >= batch_size
+        return len(
+            self.buffer) >= batch_size
 
 
 # ─────────────────────────────────────────
 # ACTOR NETWORK
 # Picks which action to take
 # Input = Transformer encoded state
-# Output = probability for each action
+# Output = probability per action
 # ─────────────────────────────────────────
 
 class SACActorNetwork(nn.Module):
     """
     Actor network for SAC.
 
-    Takes Transformer encoded state
-    as input instead of raw state!
+    Takes Transformer encoded state!
+    Key difference from CASR PPO:
 
-    This is key difference from CASR PPO:
     CASR: raw state → PPO actor
     TASCAR: raw state → Transformer
-            → enriched state → SAC actor
-
-    Output = probability distribution
-    over all possible actions
+            → enriched → SAC actor
     """
-    def __init__(self, state_dim,
+    def __init__(self,
+                 state_dim,
                  action_dim):
         super().__init__()
 
@@ -131,14 +137,22 @@ class SACActorNetwork(nn.Module):
 
     def forward(self, state):
         logits = self.network(state)
+        # Clamp to prevent NaN!
+        logits = torch.clamp(
+            logits, -10, 10)
         probs  = F.softmax(
             logits, dim=-1)
+        # Add small epsilon
+        # to prevent zero probs!
+        probs  = probs + 1e-8
+        probs  = probs / probs.sum(
+            dim=-1, keepdim=True)
         return probs
 
 
 # ─────────────────────────────────────────
 # CRITIC NETWORK
-# Estimates value of being in state
+# Estimates value of state
 # SAC uses TWO critics!
 # Takes minimum to reduce bias!
 # ─────────────────────────────────────────
@@ -151,14 +165,12 @@ class SACCriticNetwork(nn.Module):
     PPO uses ONE critic
     SAC uses TWO critics!
 
-    Why two critics?
-    One critic tends to OVERESTIMATE
-    how good actions are!
     Two critics → take minimum →
-    reduces overestimation bias!
+    Reduces overestimation bias!
     More stable training!
     """
-    def __init__(self, state_dim,
+    def __init__(self,
+                 state_dim,
                  action_dim):
         super().__init__()
 
@@ -183,6 +195,7 @@ class SACCriticNetwork(nn.Module):
 # SAC AGENT
 # Complete Soft Actor-Critic Agent
 # Works with Transformer encoder!
+# Fixed with gradient clipping!
 # ─────────────────────────────────────────
 
 class SACAgent:
@@ -190,16 +203,14 @@ class SACAgent:
     Complete SAC Agent.
 
     Key improvements over PPO in CASR:
-
     1. TWO critics reduce overestimation
     2. Entropy temperature encourages
-       better exploration automatically
+       better exploration
     3. Off-policy learning reuses
        old experiences efficiently
-    4. Automatic alpha tuning adapts
-       exploration over time
+    4. Automatic alpha tuning
     5. Works with Transformer encoder
-       for temporal state modeling
+    6. Gradient clipping prevents NaN!
     """
     def __init__(self,
                  transformer_dim,
@@ -243,11 +254,12 @@ class SACAgent:
                     [self.log_alpha],
                     lr=SAC_LR_ALPHA))
         else:
-            self.alpha = SAC_ALPHA
-            self.log_alpha = None
+            self.alpha           = SAC_ALPHA
+            self.log_alpha       = None
             self.alpha_optimizer = None
 
-        # Optimizers
+        # Optimizers with lower LR
+        # for stability!
         self.actor_optimizer = (
             optim.Adam(
                 self.actor.parameters(),
@@ -270,12 +282,8 @@ class SACAgent:
             self._build_action_map())
 
     def _build_action_map(self):
-        """
-        Same action map as CASR!
-        Each queue can expand shrink
-        or stay same
-        """
-        choices = [
+        """Same action map as CASR!"""
+        choices    = [
             -SCALING_FACTOR,
             0,
             SCALING_FACTOR]
@@ -299,10 +307,6 @@ class SACAgent:
 
         This is the KEY step that
         makes TASCAR different from CASR!
-
-        CASR just uses raw state
-        TASCAR enriches state through
-        Transformer first!
         """
         with torch.no_grad():
             seq_tensor = (
@@ -311,9 +315,15 @@ class SACAgent:
                 .unsqueeze(0))
             encoded = self.transformer(
                 seq_tensor)
-        return (encoded
-                .squeeze(0)
-                .numpy())
+
+        result = (
+            encoded.squeeze(0).numpy())
+
+        # Check for NaN in encoding!
+        if np.isnan(result).any():
+            result = np.zeros_like(result)
+
+        return result
 
     def choose_action(
             self,
@@ -323,10 +333,10 @@ class SACAgent:
         Pick action from encoded state.
 
         Training: sample randomly
-        for exploration!
-
         Evaluation: pick best action
-        for exploitation!
+
+        NaN protection added!
+        Returns random action if NaN!
         """
         state_tensor = (
             torch.FloatTensor(
@@ -337,13 +347,18 @@ class SACAgent:
             probs = self.actor(
                 state_tensor)
 
+        # NaN protection!
+        if torch.isnan(probs).any():
+            return np.random.randint(
+                0, self.action_dim)
+
         if evaluate:
             # Best action for evaluation
             action = probs.argmax(
                 dim=-1).item()
         else:
             # Sample for exploration
-            dist   = (
+            dist = (
                 torch.distributions
                 .Categorical(probs))
             action = dist.sample().item()
@@ -367,23 +382,23 @@ class SACAgent:
 
     def update(self):
         """
-        SAC update step.
+        SAC update step with
+        gradient clipping!
 
         Updates:
         1. Both critics
         2. Actor
-        3. Entropy temperature (alpha)
-        4. Target networks (soft update)
-
-        Called every step when buffer
-        has enough experiences!
+        3. Entropy temperature
+        4. Target networks
         """
         if not self.buffer.is_ready(
                 SAC_BATCH_SIZE):
             return None, None, None
 
         # Sample random batch
-        (states, actions, rewards,
+        (states,
+         actions,
+         rewards,
          next_states,
          dones) = self.buffer.sample(
             SAC_BATCH_SIZE)
@@ -392,14 +407,18 @@ class SACAgent:
         # UPDATE CRITICS
         # ============================
         with torch.no_grad():
-            # Next action probabilities
             next_probs = self.actor(
                 next_states)
+
+            # NaN check!
+            if torch.isnan(
+                    next_probs).any():
+                return None, None, None
+
             next_log_probs = torch.log(
                 next_probs + 1e-8)
 
-            # Target Q from BOTH critics
-            # Take MINIMUM to reduce bias!
+            # Take MINIMUM of two critics!
             target_q1 = (
                 self.target_critic1(
                     next_states))
@@ -409,14 +428,15 @@ class SACAgent:
             target_q  = torch.min(
                 target_q1, target_q2)
 
-            # Add entropy bonus
+            # Entropy bonus
             target_v = (
                 next_probs *
                 (target_q -
                  self.alpha *
                  next_log_probs)
-            ).sum(dim=-1,
-                  keepdim=True)
+            ).sum(
+                dim=-1,
+                keepdim=True)
 
             # Bellman target
             target = (
@@ -444,20 +464,39 @@ class SACAgent:
         critic2_loss = F.mse_loss(
             current_q2, target)
 
+        # NaN check on losses!
+        if (torch.isnan(critic1_loss)
+                or torch.isnan(
+                    critic2_loss)):
+            return None, None, None
+
         # Update critic 1
+        # WITH gradient clipping!
         self.critic1_optimizer.zero_grad()
         critic1_loss.backward()
+        torch.nn.utils.clip_grad_norm_(
+            self.critic1.parameters(),
+            max_norm=1.0)
         self.critic1_optimizer.step()
 
         # Update critic 2
+        # WITH gradient clipping!
         self.critic2_optimizer.zero_grad()
         critic2_loss.backward()
+        torch.nn.utils.clip_grad_norm_(
+            self.critic2.parameters(),
+            max_norm=1.0)
         self.critic2_optimizer.step()
 
         # ============================
         # UPDATE ACTOR
         # ============================
         probs = self.actor(states)
+
+        # NaN check!
+        if torch.isnan(probs).any():
+            return None, None, None
+
         log_probs = torch.log(
             probs + 1e-8)
 
@@ -466,19 +505,28 @@ class SACAgent:
             q2 = self.critic2(states)
             q  = torch.min(q1, q2)
 
-        # Actor loss with entropy bonus
+        # Actor loss with entropy
         actor_loss = (
             probs *
             (self.alpha *
              log_probs - q)
         ).sum(dim=-1).mean()
 
+        # NaN check!
+        if torch.isnan(actor_loss):
+            return None, None, None
+
+        # Update actor
+        # WITH gradient clipping!
         self.actor_optimizer.zero_grad()
         actor_loss.backward()
+        torch.nn.utils.clip_grad_norm_(
+            self.actor.parameters(),
+            max_norm=1.0)
         self.actor_optimizer.step()
 
         # ============================
-        # UPDATE ALPHA (ENTROPY TEMP)
+        # UPDATE ALPHA
         # ============================
         alpha_loss = None
         if (AUTO_ENTROPY and
@@ -499,13 +547,16 @@ class SACAgent:
                  TARGET_ENTROPY)
                 .detach()).mean()
 
-            self.alpha_optimizer\
-                .zero_grad()
-            alpha_loss.backward()
-            self.alpha_optimizer.step()
-            self.alpha = (
-                self.log_alpha
-                .exp().item())
+            if not torch.isnan(
+                    alpha_loss):
+                self.alpha_optimizer\
+                    .zero_grad()
+                alpha_loss.backward()
+                self.alpha_optimizer\
+                    .step()
+                self.alpha = (
+                    self.log_alpha
+                    .exp().item())
 
         # ============================
         # SOFT UPDATE TARGETS
@@ -517,19 +568,15 @@ class SACAgent:
             actor_loss.item(),
             critic1_loss.item(),
             alpha_loss.item()
-            if alpha_loss
+            if alpha_loss is not None
             else 0.0)
 
     def _update_targets(self, tau):
         """
         Soft update target networks.
-
         Slowly moves targets toward
         current critic weights.
         Keeps training stable!
-
-        tau=1.0 = hard copy
-        tau=0.005 = soft update
         """
         for target, current in zip(
             self.target_critic1
