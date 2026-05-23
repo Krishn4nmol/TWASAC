@@ -1,4 +1,4 @@
-# TASCAR: Transformer-Attention Soft Actor-Critic for Adaptive Resource Optimization in Serverless Computing
+# TASCAR: Transformer-Attention Soft Actor-Critic for Serverless Computing
 
 ## Adaptive Resource Optimization using Temporal Attention and SAC
 
@@ -207,6 +207,7 @@ TASCAR/
 ├── train_tascar.py         ← TASCAR training script
 ├── evaluate_tascar.py      ← CASR vs TASCAR evaluation
 ├── evaluate.py             ← CASR full evaluation
+├── requirements.txt        ← Python dependencies
 ├── results_tascar/         ← TASCAR comparison results
 └── trained_model_tascar/   ← Trained TASCAR model
 ```
@@ -265,20 +266,35 @@ TASCAR: θ adapts based on cold start rate!
 
 ## Training Details
 
+### TASCAR
 ```
 Episodes:        500
 Steps/episode:   100 (TASCAR_DELTA=1000)
-Total steps:     50,000 (vs CASR 2,000)
-Warmup episodes: 20 (fill buffer first!)
+Total steps:     50,000
+Warmup episodes: 20
 Best reward:     -0.1381
 Final theta:     0.720
-
-CASR comparison:
-Episodes:      200
-Steps/episode: 10 (DELTA=10000)
-Total steps:   2,000
-Best reward:   -0.0447
+Training time:   ~15 minutes
+WMT throughout:  0.000s always
 ```
+
+### CASR (for reference)
+```
+Episodes:        200
+Steps/episode:   10 (DELTA=10000)
+Total steps:     2,000
+Best reward:     -0.0447
+Training time:   ~5 minutes
+```
+
+### Note on Training Budget
+TASCAR was trained for 500 episodes with TASCAR_DELTA=1000
+giving 100 decisions per episode. CASR was trained for 200
+episodes with DELTA=10000 giving 10 decisions per episode.
+The increased training budget reflects TASCAR's architectural
+requirement for more experience due to the larger Transformer
+state space and off-policy SAC learning requirements.
+Equal training budget comparison is left for future work.
 
 ---
 
@@ -314,14 +330,19 @@ casr_env\Scripts\activate
 cd ..\TASCAR
 ```
 
-**Step 3: Download Azure dataset**
+**Step 3: Install packages**
+```
+pip install -r requirements.txt
+```
+
+**Step 4: Download Azure dataset**
 
 Copy data folder from CASR_Project:
 ```
 xcopy ..\CASR_Project\data data\ /E /I
 ```
 
-**Step 4: Copy CASR trained model**
+**Step 5: Copy CASR trained model**
 ```
 xcopy ..\CASR_Project\trained_model trained_model\ /E /I
 ```
@@ -341,29 +362,6 @@ Training takes approximately 15 minutes for 500 episodes.
 python evaluate_tascar.py
 ```
 Evaluation takes approximately 1 hour with cooling breaks.
-
----
-
-## Training Results
-
-### TASCAR Convergence
-```
-Best reward:     -0.1381
-Final theta:     0.720
-Steps/episode:   100
-Total steps:     50,000
-Training time:   ~15 minutes
-WMT throughout:  0.000s always
-```
-
-### CASR Convergence (for comparison)
-```
-Best reward:     -0.0447
-Episodes:        200
-Steps/episode:   10
-Total steps:     2,000
-Training time:   ~5 minutes
-```
 
 ---
 
@@ -395,11 +393,30 @@ Training time:   ~5 minutes
 
 ---
 
+## Limitations and Future Work
+
+### Current Limitations
+- TASCAR trained for 500 episodes vs CASR 200 episodes
+- Single server simulation only
+- 2,000 functions vs millions in production
+- No ablation study conducted
+- Single run results without statistical significance testing
+
+### Future Work
+- Equal training budget comparison
+- Ablation study for each component
+- Multi-server deployment evaluation
+- K=4 and K=5 queue experiments
+- Statistical analysis across multiple runs
+- Real cloud deployment testing
+
+---
+
 ## Implementation Environment
 
 ```
 OS:        Windows 11
-Processor: AMD Ryzen 7 8840HS
+Processor: AMD Ryzen 7 8840HS with Radeon 780M
 RAM:       32GB
 Python:    3.11.9
 PyTorch:   2.11.0
@@ -438,6 +455,8 @@ Email: anmolkrishna80@gmail.com
 ---
 
 ## Citation
+
+If you use this code please cite the original CASR paper:
 
 ```bibtex
 @article{CHEN2025107851,
