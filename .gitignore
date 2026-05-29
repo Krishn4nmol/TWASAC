@@ -8,9 +8,9 @@ __pycache__/
 casr_env/
 
 # Dataset files (too large for GitHub)
-data/
+data
 
-# Trained model
+# Trained models
 trained_model/
 trained_model_tascar/
 
