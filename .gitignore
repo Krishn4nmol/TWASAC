@@ -10,7 +10,7 @@ casr_env/
 # Dataset files (too large for GitHub)
 data/
 
-# Trained models
+# Trained model
 trained_model/
 trained_model_tascar/
 
