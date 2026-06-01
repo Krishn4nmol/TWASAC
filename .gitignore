@@ -20,5 +20,5 @@ trained_model_tascar/
 # VS Code settings
 .vscode/
 
-# Jupyt checkpoints
+#  checkpoints
 .ipynb_checkpoints/
