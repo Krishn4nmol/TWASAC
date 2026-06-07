@@ -1,16 +1,15 @@
 # train_tascar.py
 # Training script for TASCAR
-# Complete fixed version with:
-# 1. Averaged reward per step
-# 2. Realistic theta thresholds
-# 3. Buffer warmup phase
-# 4. Proper reward normalization
-# 5. NaN protection throughout
-# 6. Gradient clipping in SAC
+# Extended with RL metrics:
+# - Training time
+# - Convergence episode
+# - Cumulative reward
+# - Sample efficiency
 
 import numpy as np
 import json
 import os
+import time
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
@@ -33,7 +32,9 @@ from config import (
     TASCAR_MODEL_PATH,
     TASCAR_RESULTS,
     SAC_BATCH_SIZE,
-    SAC_UPDATES_PER_STEP
+    SAC_UPDATES_PER_STEP,
+    CONVERGENCE_WINDOW,
+    CONVERGENCE_THRESHOLD
 )
 from simulator import AzureDataLoader
 from scache import SCache
@@ -45,7 +46,6 @@ from sac_agent import SACAgent
 
 # ─────────────────────────────────────────
 # LOAD DATA
-# Same as CASR train.py!
 # ─────────────────────────────────────────
 
 def load_filtered_data():
@@ -88,20 +88,17 @@ def load_filtered_data():
 
 # ─────────────────────────────────────────
 # NORMALIZE STATE
-# Same as CASR environment.py!
 # ─────────────────────────────────────────
 
 def normalize_state(raw_state):
     """
-    Normalize to zero mean
-    unit variance.
+    Normalize to zero mean unit variance.
     Same as CASR!
+    NaN protection included!
     """
     state = np.array(
-        raw_state,
-        dtype=np.float32)
+        raw_state, dtype=np.float32)
 
-    # NaN check!
     if np.isnan(state).any():
         return np.zeros_like(state)
 
@@ -110,7 +107,6 @@ def normalize_state(raw_state):
     if std > 0:
         state = (state - mean) / std
 
-    # Final NaN check!
     if np.isnan(state).any():
         return np.zeros(
             len(raw_state),
@@ -121,31 +117,22 @@ def normalize_state(raw_state):
 
 # ─────────────────────────────────────────
 # DYNAMIC THETA
-# Key innovation of TASCAR!
-# Realistic thresholds!
 # ─────────────────────────────────────────
 
 def compute_dynamic_theta(
         cold_start_rate,
         current_theta):
     """
-    Adapts theta based on performance.
+    Adapts theta based on cold start rate.
 
-    Realistic thresholds for
-    serverless workloads (85-95%):
+    >95%: Increase theta
+          Focus on cold starts!
+    <85%: Decrease theta
+          Focus on memory!
+    85-95%: Keep stable!
 
-    >95%: Very high cold starts
-          Increase theta aggressively!
-
-    <85%: Cold starts improving!
-          Focus more on memory!
-
-    85-95%: Normal range
-            Keep theta stable!
-
-    CASR uses fixed theta=0.8 always.
-    TASCAR adapts automatically!
-    This is key innovation!
+    CASR: fixed 0.8 always!
+    TASCAR: adapts 0.5-0.9!
     """
     if cold_start_rate > 0.95:
         new_theta = min(
@@ -164,22 +151,13 @@ def compute_dynamic_theta(
 
 # ─────────────────────────────────────────
 # REWARD NORMALIZER
-# Same normalization as CASR!
-# Fixes reward scale mismatch!
 # ─────────────────────────────────────────
 
 class RewardNormalizer:
     """
-    Normalizes reward exactly like
-    CASR environment.py!
-
-    Tracks min/max of R1 and R2.
-    Normalizes to 0-1 range.
-    Combines with theta weighting.
-
-    Result: reward in range -1 to 0
-    Same scale as CASR!
-    Makes fair comparison possible!
+    Normalizes reward same as CASR!
+    Fixes reward scale mismatch!
+    Result: reward in -1 to 0 range!
     """
     def __init__(self):
         self.r1_min =  float('inf')
@@ -223,7 +201,6 @@ class RewardNormalizer:
             theta * r1_norm +
             (1 - theta) * r2_norm)
 
-        # NaN check!
         if np.isnan(reward):
             reward = 0.0
 
@@ -232,13 +209,18 @@ class RewardNormalizer:
 
 # ─────────────────────────────────────────
 # TRAINING LOGGER
+# Extended with RL metrics!
 # ─────────────────────────────────────────
 
 class TASCARLogger:
     """
-    Records all training metrics.
-    Same key names as CASR for
-    consistency!
+    Records ALL training metrics!
+    Extended with professor recommended
+    RL-specific metrics:
+    - Training time
+    - Convergence episode
+    - Cumulative reward
+    - Sample efficiency
     """
     def __init__(self):
         self.episodes         = []
@@ -248,8 +230,23 @@ class TASCARLogger:
         self.thetas           = []
         self.actor_losses     = []
         self.critic_losses    = []
-        self.best_reward      = float(
-            '-inf')
+        self.best_reward      = float('-inf')
+
+        # NEW: RL Metrics
+        self.training_start_time  = None
+        self.training_end_time    = None
+        self.convergence_episode  = None
+        self.cumulative_rewards   = []
+        self.sample_counts        = []
+        self.total_samples        = 0
+
+    def start_training(self):
+        """Call at start of training!"""
+        self.training_start_time = time.time()
+
+    def end_training(self):
+        """Call at end of training!"""
+        self.training_end_time = time.time()
 
     def log_episode(self,
                     episode,
@@ -258,25 +255,111 @@ class TASCARLogger:
                     wmt,
                     theta,
                     actor_loss=None,
-                    critic_loss=None):
+                    critic_loss=None,
+                    steps_this_ep=100):
         self.episodes.append(episode)
         self.rewards.append(reward)
         self.cold_start_rates.append(
             cold_rate)
         self.wmts.append(wmt)
         self.thetas.append(theta)
+
         if actor_loss is not None:
             self.actor_losses.append(
                 actor_loss)
         if critic_loss is not None:
             self.critic_losses.append(
                 critic_loss)
+
         if reward > self.best_reward:
             self.best_reward = reward
 
+        # Cumulative reward
+        if self.cumulative_rewards:
+            self.cumulative_rewards.append(
+                self.cumulative_rewards[-1]
+                + reward)
+        else:
+            self.cumulative_rewards.append(
+                reward)
+
+        # Sample count tracking
+        self.total_samples += steps_this_ep
+        self.sample_counts.append(
+            self.total_samples)
+
+        # Check convergence
+        if (self.convergence_episode
+                is None and
+                len(self.rewards) >=
+                CONVERGENCE_WINDOW):
+            recent = self.rewards[
+                -CONVERGENCE_WINDOW:]
+            std = np.std(recent)
+            if std < CONVERGENCE_THRESHOLD:
+                self.convergence_episode = (
+                    episode)
+
+    def get_training_time(self):
+        """
+        Wall-clock training time in seconds
+        """
+        if (self.training_start_time
+                is None):
+            return 0.0
+        end = (
+            self.training_end_time
+            if self.training_end_time
+            else time.time())
+        return end - self.training_start_time
+
+    def get_convergence_episode(self):
+        """
+        Episode where reward stabilized!
+        Returns -1 if not converged!
+        """
+        if self.convergence_episode:
+            return self.convergence_episode
+        return -1
+
+    def get_sample_efficiency(self):
+        """
+        Sample Efficiency
+        SE = best_reward / total_samples
+        Higher is better!
+        """
+        if self.total_samples == 0:
+            return 0.0
+        return (self.best_reward /
+                self.total_samples *
+                10000)
+
+    def get_rl_metrics(self):
+        """
+        Returns all RL-specific metrics!
+        Used in paper Section 5 (Results)!
+        """
+        return {
+            'training_time_seconds':
+                self.get_training_time(),
+            'convergence_episode':
+                self.get_convergence_episode(),
+            'best_reward':
+                self.best_reward,
+            'final_cumulative_reward':
+                (self.cumulative_rewards[-1]
+                 if self.cumulative_rewards
+                 else 0.0),
+            'total_training_samples':
+                self.total_samples,
+            'sample_efficiency':
+                self.get_sample_efficiency(),
+            'total_episodes':
+                len(self.episodes),
+        }
+
     def save_logs(self, path):
-        os.makedirs(
-            path, exist_ok=True)
+        os.makedirs(path, exist_ok=True)
         logs = {
             'episodes':         self.episodes,
             'rewards':          self.rewards,
@@ -285,24 +368,38 @@ class TASCARLogger:
             'thetas':           self.thetas,
             'actor_losses':     self.actor_losses,
             'critic_losses':    self.critic_losses,
-            'best_reward':      self.best_reward
+            'best_reward':      self.best_reward,
+
+            # NEW: RL metrics saved!
+            'cumulative_rewards':
+                self.cumulative_rewards,
+            'sample_counts':
+                self.sample_counts,
+            'training_time_seconds':
+                self.get_training_time(),
+            'convergence_episode':
+                self.get_convergence_episode(),
+            'sample_efficiency':
+                self.get_sample_efficiency(),
+            'total_samples':
+                self.total_samples,
         }
         with open(
-                path +
-                'training_logs.json',
+                path + 'training_logs.json',
                 'w') as f:
-            json.dump(
-                logs, f, indent=2)
+            json.dump(logs, f, indent=2)
         print(f"Logs saved!")
 
     def plot_training(self, path):
         if len(self.episodes) < 2:
             return
 
+        # Extended: 3×2 grid now!
         fig, axes = plt.subplots(
-            2, 2, figsize=(14, 10))
+            3, 2, figsize=(14, 16))
         fig.suptitle(
-            'TASCAR Training Progress',
+            'TASCAR Training Progress\n'
+            'RL Metrics Included',
             fontsize=14,
             fontweight='bold')
 
@@ -320,10 +417,16 @@ class TASCARLogger:
             color='darkblue',
             linewidth=2.5,
             label='Smoothed')
+        if self.convergence_episode:
+            axes[0, 0].axvline(
+                x=self.convergence_episode,
+                color='green',
+                linestyle='--',
+                label=f'Converged ep '
+                      f'{self.convergence_episode}')
         axes[0, 0].set_title(
             'Reward Convergence')
-        axes[0, 0].set_xlabel(
-            'Episode')
+        axes[0, 0].set_xlabel('Episode')
         axes[0, 0].set_ylabel(
             'Avg Reward per Step')
         axes[0, 0].legend()
@@ -346,10 +449,8 @@ class TASCARLogger:
             label='Smoothed')
         axes[0, 1].set_title(
             'Cold Start Rate (%)')
-        axes[0, 1].set_xlabel(
-            'Episode')
-        axes[0, 1].set_ylabel(
-            'Cold%')
+        axes[0, 1].set_xlabel('Episode')
+        axes[0, 1].set_ylabel('Cold%')
         axes[0, 1].legend()
         axes[0, 1].grid(alpha=0.3)
 
@@ -362,17 +463,14 @@ class TASCARLogger:
             linewidth=1)
         axes[1, 0].plot(
             self.episodes,
-            self._smooth(
-                self.wmts, 10),
+            self._smooth(self.wmts, 10),
             color='darkgreen',
             linewidth=2.5,
             label='Smoothed')
         axes[1, 0].set_title(
             'Wasted Memory Time (s)')
-        axes[1, 0].set_xlabel(
-            'Episode')
-        axes[1, 0].set_ylabel(
-            'WMT (s)')
+        axes[1, 0].set_xlabel('Episode')
+        axes[1, 0].set_ylabel('WMT (s)')
         axes[1, 0].legend()
         axes[1, 0].grid(alpha=0.3)
 
@@ -390,18 +488,58 @@ class TASCARLogger:
             label='CASR fixed=0.8')
         axes[1, 1].set_title(
             'Dynamic Theta')
-        axes[1, 1].set_xlabel(
-            'Episode')
-        axes[1, 1].set_ylabel(
-            'Theta')
+        axes[1, 1].set_xlabel('Episode')
+        axes[1, 1].set_ylabel('Theta')
         axes[1, 1].legend()
         axes[1, 1].grid(alpha=0.3)
         axes[1, 1].set_ylim(0.4, 1.0)
 
+        # NEW: Cumulative reward
+        if self.cumulative_rewards:
+            axes[2, 0].plot(
+                self.episodes,
+                self.cumulative_rewards,
+                color='orange',
+                linewidth=2,
+                label='Cumulative Reward')
+            axes[2, 0].set_title(
+                'Cumulative Reward')
+            axes[2, 0].set_xlabel(
+                'Episode')
+            axes[2, 0].set_ylabel(
+                'Rcum')
+            axes[2, 0].legend()
+            axes[2, 0].grid(alpha=0.3)
+
+        # NEW: Sample efficiency
+        if (self.sample_counts and
+                self.rewards):
+            axes[2, 1].plot(
+                self.sample_counts,
+                self.rewards,
+                color='teal',
+                alpha=0.4,
+                linewidth=1)
+            axes[2, 1].plot(
+                self.sample_counts,
+                self._smooth(
+                    self.rewards, 10),
+                color='darkcyan',
+                linewidth=2.5,
+                label='Smoothed')
+            axes[2, 1].set_title(
+                'Sample Efficiency\n'
+                '(Reward vs Samples)')
+            axes[2, 1].set_xlabel(
+                'Training Samples')
+            axes[2, 1].set_ylabel(
+                'Reward')
+            axes[2, 1].legend()
+            axes[2, 1].grid(alpha=0.3)
+
         plt.tight_layout()
         plt.savefig(
-            path +
-            'tascar_training.png',
+            path + 'tascar_training.png',
             dpi=150,
             bbox_inches='tight')
         plt.close()
@@ -419,8 +557,6 @@ class TASCARLogger:
 
 # ─────────────────────────────────────────
 # WARMUP BUFFER
-# Fill buffer before training!
-# Critical for SAC!
 # ─────────────────────────────────────────
 
 def warmup_buffer(agent,
@@ -430,18 +566,7 @@ def warmup_buffer(agent,
     """
     Fills replay buffer with random
     experiences before training!
-
-    Why needed:
-    SAC is OFF-POLICY
-    Needs diverse data first!
-
-    CASR PPO is ON-POLICY
-    Does not need this!
-
-    With TASCAR_DELTA=1000:
-    100 steps per episode
-    20 episodes = 2000 experiences
-    Enough to start learning!
+    SAC needs this to start learning!
     """
     steps_per_ep = (
         EVAL_CALLS // TASCAR_DELTA)
@@ -486,8 +611,7 @@ def warmup_buffer(agent,
 
         for call in episode_calls:
             is_warm = (
-                scache.handle_request(
-                    call))
+                scache.handle_request(call))
             if is_warm:
                 step_warm += 1
             else:
@@ -506,50 +630,40 @@ def warmup_buffer(agent,
                     agent.get_encoded_state(
                         new_seq))
 
-                # Random action!
                 action = np.random.randint(
                     0, agent.action_dim)
 
-                total = (
+                total     = (
                     step_cold + step_warm)
                 cold_rate = (
                     step_cold / total
-                    if total > 0
-                    else 0)
+                    if total > 0 else 0)
                 current_wmt = (
                     scache
                     .get_total_wasted_memory_time())
                 wmt_change = max(
                     0,
-                    current_wmt -
-                    wmt_before)
+                    current_wmt - wmt_before)
                 wmt_before = current_wmt
 
                 reward = -(
                     THETA *
                     min(cold_rate, 1.0) +
                     (1 - THETA) *
-                    min(
-                        wmt_change /
+                    min(wmt_change /
                         100.0, 1.0))
 
-                # NaN check before storing!
                 if (not np.isnan(
-                        encoded).any()
-                        and not np.isnan(
-                            next_enc
-                        ).any()):
+                        encoded).any() and
+                        not np.isnan(
+                            next_enc).any()):
                     agent.store_experience(
-                        encoded,
-                        action,
-                        reward,
-                        next_enc,
+                        encoded, action,
+                        reward, next_enc,
                         False)
 
-                # Apply random action
                 scales = (
-                    agent.action_map[
-                        action])
+                    agent.action_map[action])
                 for q_idx, scale in (
                         enumerate(scales)):
                     if scale != 0:
@@ -562,8 +676,7 @@ def warmup_buffer(agent,
 
         print(
             f"  Warmup ep {ep+1:2d}: "
-            f"Buffer: "
-            f"{len(agent.buffer)}")
+            f"Buffer: {len(agent.buffer)}")
 
     print(
         f"Warmup complete! "
@@ -577,23 +690,12 @@ def warmup_buffer(agent,
 def train_tascar():
     """
     Main TASCAR training loop.
-
-    All fixes applied:
-    1. TASCAR_DELTA=1000 (100 steps/ep)
-    2. Reward averaged per step
-    3. Realistic theta thresholds
-    4. Buffer warmup (20 episodes)
-    5. Proper reward normalization
-    6. 10 SAC updates per step
-    7. NaN protection everywhere
-    8. Gradient clipping in SAC
+    Extended with RL metrics tracking!
     """
     os.makedirs(
-        TASCAR_MODEL_PATH,
-        exist_ok=True)
+        TASCAR_MODEL_PATH, exist_ok=True)
     os.makedirs(
-        TASCAR_RESULTS,
-        exist_ok=True)
+        TASCAR_RESULTS, exist_ok=True)
 
     print("\nLoading Azure dataset...")
     train_data = load_filtered_data()
@@ -619,28 +721,24 @@ def train_tascar():
     print(f"  Batch size:      "
           f"{SAC_BATCH_SIZE}")
 
-    # Create Transformer
     transformer = TransformerEncoder(
         state_dim)
-
-    # Create SAC agent
     agent = SACAgent(
         transformer_dim=TRANSFORMER_DIM,
         action_dim=action_dim,
         transformer=transformer)
 
-    # Warmup buffer!
     warmup_buffer(
-        agent,
-        train_data,
-        state_dim,
-        warmup_episodes=20)
+        agent, train_data,
+        state_dim, warmup_episodes=20)
 
-    # Reward normalizer
     reward_norm   = RewardNormalizer()
     logger        = TASCARLogger()
     calls_per_ep  = EVAL_CALLS
     current_theta = THETA
+
+    # START TIMER!
+    logger.start_training()
 
     print(f"\nStarting training...")
     print("=" * 55)
@@ -648,11 +746,9 @@ def train_tascar():
     for episode in range(
             1, TASCAR_EPISODES + 1):
 
-        # Random start each episode
         max_start = max(
             1,
-            len(train_data) -
-            calls_per_ep)
+            len(train_data) - calls_per_ep)
         start_idx = np.random.randint(
             0, max_start)
         episode_calls = train_data[
@@ -663,12 +759,10 @@ def train_tascar():
             episode_calls = (
                 train_data[:calls_per_ep])
 
-        # Fresh S-Cache each episode
         scache  = SCache()
         history = StateHistoryBuffer(
             SEQUENCE_LENGTH, state_dim)
 
-        # Initial state
         raw_state = normalize_state(
             scache.get_state())
         history.add(raw_state)
@@ -676,7 +770,6 @@ def train_tascar():
         encoded_state = (
             agent.get_encoded_state(seq))
 
-        # Episode tracking
         ep_reward      = 0.0
         ep_cold        = 0
         ep_warm        = 0
@@ -691,8 +784,7 @@ def train_tascar():
         for call in episode_calls:
 
             is_warm = (
-                scache.handle_request(
-                    call))
+                scache.handle_request(call))
             if is_warm:
                 step_warm += 1
                 ep_warm   += 1
@@ -701,12 +793,9 @@ def train_tascar():
                 ep_cold   += 1
             call_count += 1
 
-            # TASCAR_DELTA = 1000
-            # 100 decisions/episode!
             if (call_count %
                     TASCAR_DELTA == 0):
 
-                # New state
                 new_raw = normalize_state(
                     scache.get_state())
                 history.add(new_raw)
@@ -716,26 +805,22 @@ def train_tascar():
                     agent.get_encoded_state(
                         new_seq))
 
-                # Dynamic theta
                 total = (
                     step_cold + step_warm)
                 cold_rate = (
                     step_cold / total
-                    if total > 0
-                    else 0)
+                    if total > 0 else 0)
                 current_theta = (
                     compute_dynamic_theta(
                         cold_rate,
                         current_theta))
 
-                # Normalized reward!
                 current_wmt = (
                     scache
                     .get_total_wasted_memory_time())
                 wmt_change = max(
                     0,
-                    current_wmt -
-                    wmt_before)
+                    current_wmt - wmt_before)
                 wmt_before = current_wmt
 
                 reward = (
@@ -744,68 +829,53 @@ def train_tascar():
                         wmt_change,
                         current_theta))
 
-                # Pick action
                 action = (
                     agent.choose_action(
                         encoded_state))
 
-                # NaN check before storing!
                 if (not np.isnan(
-                        encoded_state
-                    ).any() and
-                        not np.isnan(
+                        encoded_state).any()
+                        and not np.isnan(
                             next_encoded
                         ).any()):
                     agent.store_experience(
                         encoded_state,
-                        action,
-                        reward,
-                        next_encoded,
-                        False)
+                        action, reward,
+                        next_encoded, False)
 
                 ep_reward  += reward
                 steps_done += 1
 
-                # Multiple SAC updates!
                 for _ in range(
                         SAC_UPDATES_PER_STEP):
                     result = agent.update()
-                    if (result[0]
-                            is not None):
-                        ep_actor_loss\
-                            .append(
+                    if result[0] is not None:
+                        ep_actor_loss.append(
                             result[0])
-                        ep_critic_loss\
-                            .append(
+                        ep_critic_loss.append(
                             result[1])
 
-                # Apply action to queues
                 scales = (
-                    agent.action_map[
-                        action])
+                    agent.action_map[action])
                 for q_idx, scale in (
                         enumerate(scales)):
                     if scale != 0:
                         scache.scale_queue(
                             q_idx, scale)
 
-                encoded_state = (
-                    next_encoded)
-                step_cold = 0
-                step_warm = 0
+                encoded_state = next_encoded
+                step_cold     = 0
+                step_warm     = 0
 
         # Episode metrics
         total_calls = ep_cold + ep_warm
         cold_pct = (
-            ep_cold /
-            total_calls * 100
-            if total_calls > 0
-            else 0)
+            ep_cold / total_calls * 100
+            if total_calls > 0 else 0)
         final_wmt = (
             scache
             .get_total_wasted_memory_time())
 
-        # AVERAGE reward per step!
         avg_ep_reward = (
             ep_reward / steps_done
             if steps_done > 0
@@ -813,14 +883,12 @@ def train_tascar():
 
         avg_actor = (
             np.mean(ep_actor_loss)
-            if ep_actor_loss
-            else 0)
+            if ep_actor_loss else 0)
         avg_critic = (
             np.mean(ep_critic_loss)
-            if ep_critic_loss
-            else 0)
+            if ep_critic_loss else 0)
 
-        # Log averaged reward!
+        # Log with steps count!
         logger.log_episode(
             episode,
             avg_ep_reward,
@@ -828,22 +896,21 @@ def train_tascar():
             final_wmt,
             current_theta,
             avg_actor,
-            avg_critic)
+            avg_critic,
+            steps_this_ep=steps_done)
 
-        # Save best model
-        if avg_ep_reward > (
-                logger.best_reward):
+        if avg_ep_reward > logger.best_reward:
             agent.save(
-                TASCAR_MODEL_PATH +
-                "best/")
+                TASCAR_MODEL_PATH + "best/")
 
-        # Print every 10 episodes
         if episode % 10 == 0:
             avg_r = np.mean(
                 logger.rewards[-10:])
             avg_c = np.mean(
                 logger.cold_start_rates
                 [-10:])
+            elapsed = (
+                logger.get_training_time())
             print(
                 f"Ep {episode:3d} | "
                 f"Reward: {avg_r:7.4f} | "
@@ -851,34 +918,44 @@ def train_tascar():
                 f"Theta: "
                 f"{current_theta:.3f} | "
                 f"Buffer: "
-                f"{len(agent.buffer):5d}")
+                f"{len(agent.buffer):5d} | "
+                f"Time: {elapsed:.0f}s")
 
-        # Checkpoint every 50 episodes
         if episode % 50 == 0:
             agent.save(
                 TASCAR_MODEL_PATH +
-                f"checkpoint_ep"
-                f"{episode}/")
-            logger.save_logs(
-                TASCAR_RESULTS)
+                f"checkpoint_ep{episode}/")
+            logger.save_logs(TASCAR_RESULTS)
             logger.plot_training(
                 TASCAR_RESULTS)
 
+    # END TIMER!
+    logger.end_training()
+
     # Final save
-    agent.save(
-        TASCAR_MODEL_PATH + "best/")
+    agent.save(TASCAR_MODEL_PATH + "best/")
     logger.save_logs(TASCAR_RESULTS)
     logger.plot_training(TASCAR_RESULTS)
 
+    # Print RL metrics!
+    rl_metrics = logger.get_rl_metrics()
     print("\n" + "=" * 55)
     print("TASCAR Training Complete!")
-    print(f"Best reward:   "
-          f"{logger.best_reward:.4f}")
-    print(f"Final theta:   "
+    print("=" * 55)
+    print(f"Best reward:        "
+          f"{rl_metrics['best_reward']:.4f}")
+    print(f"Final theta:        "
           f"{current_theta:.3f}")
-    print(f"Steps/episode: {steps_per_ep}")
-    print(f"Total steps:   "
-          f"{TASCAR_EPISODES * steps_per_ep}")
+    print(f"Training time:      "
+          f"{rl_metrics['training_time_seconds']:.1f}s")
+    print(f"Convergence ep:     "
+          f"{rl_metrics['convergence_episode']}")
+    print(f"Total samples:      "
+          f"{rl_metrics['total_training_samples']}")
+    print(f"Sample efficiency:  "
+          f"{rl_metrics['sample_efficiency']:.6f}")
+    print(f"Cumulative reward:  "
+          f"{rl_metrics['final_cumulative_reward']:.2f}")
     print("=" * 55)
 
     return agent, logger
