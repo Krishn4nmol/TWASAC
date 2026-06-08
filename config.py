@@ -75,7 +75,7 @@ RESULTS_PATH         = "results/"
 
 # ─────────────────────────────────────────
 # COOLING SETTINGS
-# Prevents laptop overheating
+# Prevents laptop overheating!
 # ─────────────────────────────────────────
 COOLING_BETWEEN_ALGORITHMS = 30
 COOLING_BETWEEN_WORKLOADS  = 120
@@ -123,11 +123,19 @@ THETA_ADAPT_RATE = 0.01
 
 # ─────────────────────────────────────────
 # TASCAR: TRAINING SETTINGS
-# 500 episodes for better learning!
+# 500 episodes same scale as CASR!
+# Fair comparison basis!
 # ─────────────────────────────────────────
 TASCAR_EPISODES   = 500
 TASCAR_MODEL_PATH = "trained_model_tascar/"
 TASCAR_RESULTS    = "results_tascar/"
+
+# ─────────────────────────────────────────
+# RANDOM SEED
+# Fixed for reproducibility!
+# Same results every run!
+# ─────────────────────────────────────────
+RANDOM_SEED = 42
 
 # ─────────────────────────────────────────
 # EVALUATION METRICS SETTINGS
