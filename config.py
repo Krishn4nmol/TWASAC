@@ -41,7 +41,6 @@ SCALING_FACTOR = 0.25
 
 # ─────────────────────────────────────────
 # PPO SETTINGS (CASR)
-# Exact values from paper Table 2
 # ─────────────────────────────────────────
 LEARNING_RATE_ACTOR  = 0.001
 LEARNING_RATE_CRITIC = 0.001
@@ -75,7 +74,6 @@ RESULTS_PATH         = "results/"
 
 # ─────────────────────────────────────────
 # COOLING SETTINGS
-# Prevents laptop overheating!
 # ─────────────────────────────────────────
 COOLING_BETWEEN_ALGORITHMS = 30
 COOLING_BETWEEN_WORKLOADS  = 120
@@ -108,8 +106,6 @@ SAC_UPDATES_PER_STEP = 10
 
 # ─────────────────────────────────────────
 # TASCAR: DELTA SETTINGS
-# Training uses small delta = more steps
-# Evaluation uses same as CASR = fair!
 # ─────────────────────────────────────────
 TASCAR_DELTA      = 1000
 TASCAR_EVAL_DELTA = 10000
@@ -123,8 +119,6 @@ THETA_ADAPT_RATE = 0.01
 
 # ─────────────────────────────────────────
 # TASCAR: TRAINING SETTINGS
-# 500 episodes same scale as CASR!
-# Fair comparison basis!
 # ─────────────────────────────────────────
 TASCAR_EPISODES   = 500
 TASCAR_MODEL_PATH = "trained_model_tascar/"
@@ -132,62 +126,53 @@ TASCAR_RESULTS    = "results_tascar/"
 
 # ─────────────────────────────────────────
 # RANDOM SEED
-# Fixed for reproducibility!
-# Same results every run!
 # ─────────────────────────────────────────
 RANDOM_SEED = 42
 
 # ─────────────────────────────────────────
 # EVALUATION METRICS SETTINGS
-# Professor recommended metrics!
 # ─────────────────────────────────────────
-
-# SLA threshold in seconds
-# Cold start > 2s = SLA violation!
-SLA_THRESHOLD = 2.0
-
-# Carbon intensity kg CO2 per kWh
-# Standard UK grid average!
+SLA_THRESHOLD    = 2.0
 CARBON_INTENSITY = 0.233
-
-# Power consumption per GB per second
-# Standard AWS cloud estimate!
-POWER_PER_GB = 0.00125
-
-# Burst detection threshold
-# Requests per second = burst!
-BURST_THRESHOLD = 100
+POWER_PER_GB     = 0.00125
+BURST_THRESHOLD  = 100
 
 # ─────────────────────────────────────────
 # TPI WEIGHTS
-# TASCAR Performance Index!
-# Must sum to 1.0!
 # ─────────────────────────────────────────
-TPI_W1 = 0.25  # CSR (most important!)
-TPI_W2 = 0.20  # WMT
-TPI_W3 = 0.20  # Throughput
-TPI_W4 = 0.20  # SVR
-TPI_W5 = 0.15  # RUE
+TPI_W1 = 0.25
+TPI_W2 = 0.20
+TPI_W3 = 0.20
+TPI_W4 = 0.20
+TPI_W5 = 0.15
 
 # ─────────────────────────────────────────
 # RL METRICS SETTINGS
-# For convergence detection!
 # ─────────────────────────────────────────
-
-# Window to check convergence
-CONVERGENCE_WINDOW = 20
-
-# Reward std below this = converged!
+CONVERGENCE_WINDOW    = 20
 CONVERGENCE_THRESHOLD = 0.05
 
 # ─────────────────────────────────────────
 # SCALING METRICS SETTINGS
-# For elasticity and SA calculation!
 # ─────────────────────────────────────────
-
-# Expected demand per queue
-# Based on Azure dataset distribution!
-EXPECTED_DEMAND = [5000, 500, 100]
-
-# Elasticity window in calls
+EXPECTED_DEMAND   = [5000, 500, 100]
 ELASTICITY_WINDOW = 10000
+
+# ─────────────────────────────────────────
+# ABLATION STUDY SETTINGS
+# Paths for 4 ablation variants!
+# V1: CASR (PPO only)
+# V2: SAC only (no Transformer)
+# V3: Transformer + PPO (no SAC)
+# V4: Full TASCAR (all components)
+# ─────────────────────────────────────────
+SAC_ONLY_MODEL_PATH = (
+    "trained_model_sac_only/")
+TRANSFORMER_PPO_MODEL_PATH = (
+    "trained_model_transformer_ppo/")
+ABLATION_RESULTS = (
+    "results_ablation/")
+
+# Ablation training episodes
+# Same as TASCAR for fair comparison!
+ABLATION_EPISODES = 500
