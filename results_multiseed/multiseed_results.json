@@ -1,0 +1,935 @@
+{
+  "seeds": [
+    42,
+    123,
+    456
+  ],
+  "statistics": {
+    "Common": {
+      "CASR": {
+        "cold_start_rate": {
+          "mean": 90.255,
+          "std": 0.5387417439429266,
+          "min": 89.503,
+          "max": 90.737
+        },
+        "avg_cold_start_overhead": {
+          "mean": 10.084116945692438,
+          "std": 0.00565075864867749,
+          "min": 10.076495858631324,
+          "max": 10.090009767773907
+        },
+        "p95_latency": {
+          "mean": 28.416477548017493,
+          "std": 0.034776051064718864,
+          "min": 28.367296784955986,
+          "max": 28.441067929548243
+        },
+        "p99_latency": {
+          "mean": 43.01881932455351,
+          "std": 0.06677019819435762,
+          "min": 42.97160566462911,
+          "max": 43.11324664440231
+        },
+        "avg_response_time": {
+          "mean": 10.098750990158795,
+          "std": 0.05265201695183774,
+          "min": 10.024476552922803,
+          "max": 10.140452561261258
+        },
+        "avg_wasted_memory_time": {
+          "mean": 0.0,
+          "std": 0.0,
+          "min": 0.0,
+          "max": 0.0
+        },
+        "container_utilization_rate": {
+          "mean": 9.745,
+          "std": 0.5387417439429274,
+          "min": 9.263,
+          "max": 10.497
+        },
+        "resource_utilization_efficiency": {
+          "mean": 84.70922173884401,
+          "std": 0.07736060652522792,
+          "min": 84.640034397838,
+          "max": 84.81721042992957
+        },
+        "sla_violation_rate": {
+          "mean": 77.728,
+          "std": 0.46015432193993105,
+          "min": 77.084,
+          "max": 78.131
+        },
+        "throughput": {
+          "mean": 27.777822074516347,
+          "std": 0.0,
+          "min": 27.777822074516347,
+          "max": 27.777822074516347
+        },
+        "energy_per_request": {
+          "mean": 0.0015779298422124415,
+          "std": 8.226877648726101e-06,
+          "min": 0.001566324461394316,
+          "max": 0.0015844457126972065
+        },
+        "co2_estimate": {
+          "mean": 36.76576532354989,
+          "std": 0.1916862492153166,
+          "min": 36.49535995048757,
+          "max": 36.917585105844914
+        },
+        "tpi": {
+          "mean": 40.15266666666667,
+          "std": 0.23854885360352218,
+          "min": 39.941,
+          "max": 40.486
+        },
+        "agi": {
+          "mean": 0.0,
+          "std": 0.0,
+          "min": 0.0,
+          "max": 0.0
+        }
+      },
+      "TASCAR": {
+        "cold_start_rate": {
+          "mean": 71.86066666666666,
+          "std": 0.01583947249402067,
+          "min": 71.848,
+          "max": 71.883
+        },
+        "avg_cold_start_overhead": {
+          "mean": 10.235192732107613,
+          "std": 0.002714183127639845,
+          "min": 10.231469936712505,
+          "max": 10.237863932812182
+        },
+        "p95_latency": {
+          "mean": 26.971249028794244,
+          "std": 0.0,
+          "min": 26.971249028794244,
+          "max": 26.971249028794244
+        },
+        "p99_latency": {
+          "mean": 40.12726663395716,
+          "std": 0.0,
+          "min": 40.12726663395716,
+          "max": 40.12726663395716
+        },
+        "avg_response_time": {
+          "mean": 8.352419838311903,
+          "std": 0.0006606855713484882,
+          "min": 8.351879337933218,
+          "max": 8.353350128380164
+        },
+        "avg_wasted_memory_time": {
+          "mean": 0.0,
+          "std": 0.0,
+          "min": 0.0,
+          "max": 0.0
+        },
+        "container_utilization_rate": {
+          "mean": 28.139333333333337,
+          "std": 0.01583947249402401,
+          "min": 28.116999999999997,
+          "max": 28.152
+        },
+        "resource_utilization_efficiency": {
+          "mean": 87.43388547748748,
+          "std": 0.002421709183922055,
+          "min": 87.43047091809758,
+          "max": 87.43582210666884
+        },
+        "sla_violation_rate": {
+          "mean": 61.13400000000001,
+          "std": 0.0014142135623731486,
+          "min": 61.133,
+          "max": 61.136
+        },
+        "throughput": {
+          "mean": 27.777822074516347,
+          "std": 0.0,
+          "min": 27.777822074516347,
+          "max": 27.777822074516347
+        },
+        "energy_per_request": {
+          "mean": 0.0013050655997362763,
+          "std": 1.0323212052281174e-07,
+          "min": 0.0013049811465521064,
+          "max": 0.0013052109575594415
+        },
+        "co2_estimate": {
+          "mean": 30.40802847385524,
+          "std": 0.002405308408181192,
+          "min": 30.40606071466408,
+          "max": 30.411415311134988
+        },
+        "tpi": {
+          "mean": 48.47866666666667,
+          "std": 0.004027681991198801,
+          "min": 48.473,
+          "max": 48.482
+        },
+        "agi": {
+          "mean": 20.3776285271435,
+          "std": 0.4651153353891152,
+          "min": 19.725595790085247,
+          "max": 20.77873414373409
+        }
+      }
+    },
+    "Significant": {
+      "CASR": {
+        "cold_start_rate": {
+          "mean": 93.06966666666666,
+          "std": 0.8331851868315686,
+          "min": 91.892,
+          "max": 93.692
+        },
+        "avg_cold_start_overhead": {
+          "mean": 11.15140590052657,
+          "std": 0.024224738272480305,
+          "min": 11.119314069546082,
+          "max": 11.177836550235613
+        },
+        "p95_latency": {
+          "mean": 30.09325518281084,
+          "std": 0.0683115880255346,
+          "min": 30.044951595684363,
+          "max": 30.189862357063795
+        },
+        "p99_latency": {
+          "mean": 51.83472927550459,
+          "std": 7.105427357601002e-15,
+          "min": 51.834729275504586,
+          "max": 51.834729275504586
+        },
+        "avg_response_time": {
+          "mean": 11.3707484455881,
+          "std": 0.07757617576587127,
+          "min": 11.26386112478619,
+          "max": 11.445602852321871
+        },
+        "avg_wasted_memory_time": {
+          "mean": 0.0,
+          "std": 0.0,
+          "min": 0.0,
+          "max": 0.0
+        },
+        "container_utilization_rate": {
+          "mean": 6.9303333333333335,
+          "std": 0.8331851868315687,
+          "min": 6.308,
+          "max": 8.108
+        },
+        "resource_utilization_efficiency": {
+          "mean": 84.30729405163216,
+          "std": 0.11855790878872254,
+          "min": 84.21875315833415,
+          "max": 84.47487041567778
+        },
+        "sla_violation_rate": {
+          "mean": 83.97666666666667,
+          "std": 0.7286102448421161,
+          "min": 82.95,
+          "max": 84.566
+        },
+        "throughput": {
+          "mean": 27.77790320803226,
+          "std": 0.0,
+          "min": 27.77790320803226,
+          "max": 27.77790320803226
+        },
+        "energy_per_request": {
+          "mean": 0.0017766794446230586,
+          "std": 1.2121277463415346e-05,
+          "min": 0.0017599783007477632,
+          "max": 0.001788375445675209
+        },
+        "co2_estimate": {
+          "mean": 41.39663105971727,
+          "std": 0.2824257648975795,
+          "min": 41.00749440742288,
+          "max": 41.66914788423237
+        },
+        "tpi": {
+          "mean": 38.139,
+          "std": 0.37176964193794426,
+          "min": 37.852,
+          "max": 38.664
+        },
+        "agi": {
+          "mean": 0.0,
+          "std": 0.0,
+          "min": 0.0,
+          "max": 0.0
+        }
+      },
+      "TASCAR": {
+        "cold_start_rate": {
+          "mean": 74.55466666666668,
+          "std": 0.004714045207912729,
+          "min": 74.548,
+          "max": 74.558
+        },
+        "avg_cold_start_overhead": {
+          "mean": 11.472844069498231,
+          "std": 0.002748555569615663,
+          "min": 11.468957024934745,
+          "max": 11.474787591779975
+        },
+        "p95_latency": {
+          "mean": 28.957411794149518,
+          "std": 0.0,
+          "min": 28.957411794149518,
+          "max": 28.957411794149518
+        },
+        "p99_latency": {
+          "mean": 49.73020868496683,
+          "std": 0.0,
+          "min": 49.73020868496683,
+          "max": 49.73020868496683
+        },
+        "avg_response_time": {
+          "mean": 9.545864344812363,
+          "std": 0.002589919880627553,
+          "min": 9.542201644991719,
+          "max": 9.547695694722684
+        },
+        "avg_wasted_memory_time": {
+          "mean": 0.0,
+          "std": 0.0,
+          "min": 0.0,
+          "max": 0.0
+        },
+        "container_utilization_rate": {
+          "mean": 25.445333333333334,
+          "std": 0.004714045207912729,
+          "min": 25.441999999999997,
+          "max": 25.452
+        },
+        "resource_utilization_efficiency": {
+          "mean": 87.0239211413991,
+          "std": 0.000714008783236732,
+          "min": 87.02341626094665,
+          "max": 87.024930902304
+        },
+        "sla_violation_rate": {
+          "mean": 67.45066666666668,
+          "std": 0.004714045207912729,
+          "min": 67.444,
+          "max": 67.45400000000001
+        },
+        "throughput": {
+          "mean": 27.77790320803226,
+          "std": 0.0,
+          "min": 27.77790320803226,
+          "max": 27.77790320803226
+        },
+        "energy_per_request": {
+          "mean": 0.001491541303876889,
+          "std": 4.046749813479039e-07,
+          "min": 0.001490969007029914,
+          "max": 0.0014918274523003769
+        },
+        "co2_estimate": {
+          "mean": 34.752912380331516,
+          "std": 0.009428927065401875,
+          "min": 34.739577863797,
+          "max": 34.75957963859878
+        },
+        "tpi": {
+          "mean": 46.480333333333334,
+          "std": 0.0018856180831630816,
+          "min": 46.479,
+          "max": 46.483
+        },
+        "agi": {
+          "mean": 19.88721696966597,
+          "std": 0.724160073897677,
+          "min": 18.863448395943053,
+          "max": 20.422234555778495
+        }
+      }
+    },
+    "Random": {
+      "CASR": {
+        "cold_start_rate": {
+          "mean": 84.256,
+          "std": 5.428926290406481,
+          "min": 77.012,
+          "max": 90.081
+        },
+        "avg_cold_start_overhead": {
+          "mean": 11.84764987626393,
+          "std": 0.2975866105168465,
+          "min": 11.51844601243384,
+          "max": 12.23930972627007
+        },
+        "p95_latency": {
+          "mean": 34.22668233504484,
+          "std": 0.0,
+          "min": 34.22668233504484,
+          "max": 34.22668233504484
+        },
+        "p99_latency": {
+          "mean": 58.43120626103658,
+          "std": 0.0,
+          "min": 58.43120626103658,
+          "max": 58.43120626103658
+        },
+        "avg_response_time": {
+          "mean": 10.890081360679574,
+          "std": 0.3987811689357332,
+          "min": 10.34960742567866,
+          "max": 11.299801571743894
+        },
+        "avg_wasted_memory_time": {
+          "mean": 0.0,
+          "std": 0.0,
+          "min": 0.0,
+          "max": 0.0
+        },
+        "container_utilization_rate": {
+          "mean": 15.744,
+          "std": 5.42892629040648,
+          "min": 9.919,
+          "max": 22.988
+        },
+        "resource_utilization_efficiency": {
+          "mean": 85.58634000856614,
+          "std": 0.7980831946535195,
+          "min": 84.73412972130609,
+          "max": 86.65331050318548
+        },
+        "sla_violation_rate": {
+          "mean": 72.01033333333334,
+          "std": 4.5906157418029325,
+          "min": 65.81700000000001,
+          "max": 76.793
+        },
+        "throughput": {
+          "mean": 27.77791600799144,
+          "std": 0.0,
+          "min": 27.77791600799144,
+          "max": 27.77791600799144
+        },
+        "energy_per_request": {
+          "mean": 0.0017015752126060743,
+          "std": 6.230955764623582e-05,
+          "min": 0.0016171261602621453,
+          "max": 0.0017655939955849053
+        },
+        "co2_estimate": {
+          "mean": 39.646702453721524,
+          "std": 1.4518126931572943,
+          "min": 37.679039534107986,
+          "max": 41.13834009712829
+        },
+        "tpi": {
+          "mean": 42.92733333333334,
+          "std": 2.394664949888026,
+          "min": 40.387,
+          "max": 46.137
+        },
+        "agi": {
+          "mean": 0.0,
+          "std": 0.0,
+          "min": 0.0,
+          "max": 0.0
+        }
+      },
+      "TASCAR": {
+        "cold_start_rate": {
+          "mean": 70.84366666666666,
+          "std": 0.006018490028427197,
+          "min": 70.838,
+          "max": 70.852
+        },
+        "avg_cold_start_overhead": {
+          "mean": 12.463055881828035,
+          "std": 0.0019348409850175594,
+          "min": 12.460690739604091,
+          "max": 12.465430086755969
+        },
+        "p95_latency": {
+          "mean": 34.22668233504484,
+          "std": 0.0,
+          "min": 34.22668233504484,
+          "max": 34.22668233504484
+        },
+        "p99_latency": {
+          "mean": 58.43120626103658,
+          "std": 0.0,
+          "min": 58.43120626103658,
+          "max": 58.43120626103658
+        },
+        "avg_response_time": {
+          "mean": 9.753155898054954,
+          "std": 0.0009548435280768414,
+          "min": 9.752443325014653,
+          "max": 9.754505547042355
+        },
+        "avg_wasted_memory_time": {
+          "mean": 0.0,
+          "std": 0.0,
+          "min": 0.0,
+          "max": 0.0
+        },
+        "container_utilization_rate": {
+          "mean": 29.156333333333336,
+          "std": 0.006018490028421163,
+          "min": 29.148000000000003,
+          "max": 29.162
+        },
+        "resource_utilization_efficiency": {
+          "mean": 87.58965532118499,
+          "std": 0.0009234651928739877,
+          "min": 87.58837667216179,
+          "max": 87.59052480748808
+        },
+        "sla_violation_rate": {
+          "mean": 60.18800000000001,
+          "std": 0.001414213562369799,
+          "min": 60.187000000000005,
+          "max": 60.19
+        },
+        "throughput": {
+          "mean": 27.77791600799144,
+          "std": 0.0,
+          "min": 27.77791600799144,
+          "max": 27.77791600799144
+        },
+        "energy_per_request": {
+          "mean": 0.0015239306090709221,
+          "std": 1.4919430126215359e-07,
+          "min": 0.0015238192695333757,
+          "max": 0.0015241414917252039
+        },
+        "co2_estimate": {
+          "mean": 35.50758319135249,
+          "std": 0.0034762272194057654,
+          "min": 35.504988980127656,
+          "max": 35.51249675719725
+        },
+        "tpi": {
+          "mean": 48.94533333333334,
+          "std": 0.0016996731711992077,
+          "min": 48.943,
+          "max": 48.947
+        },
+        "agi": {
+          "mean": 15.55878405518326,
+          "std": 5.587220517684551,
+          "min": 8.013036929309726,
+          "max": 21.36188541423831
+        }
+      }
+    }
+  },
+  "per_seed": {
+    "42": {
+      "Common": {
+        "CASR": {
+          "cold_start_rate": 90.737,
+          "avg_cold_start_overhead": 10.076495858631324,
+          "p95_latency": 28.441067929548243,
+          "p99_latency": 42.97160566462911,
+          "container_utilization_rate": 9.263,
+          "resource_utilization_efficiency": 84.640034397838,
+          "avg_wasted_memory_time": 0.0,
+          "avg_response_time": 10.140452561261258,
+          "sla_violation_rate": 78.131,
+          "throughput": 27.777822074516347,
+          "successful_execution_ratio": 100.0,
+          "energy_per_request": 0.0015844457126972065,
+          "co2_estimate": 36.917585105844914,
+          "burst_handling_efficiency": 100.0,
+          "scaling_accuracy": 61.3495238095238,
+          "elasticity_score": 89.0,
+          "total_energy": 158.44457126972065,
+          "tpi": 39.941,
+          "agi": 0.0
+        },
+        "TASCAR": {
+          "cold_start_rate": 71.883,
+          "avg_cold_start_overhead": 10.231469936712505,
+          "p95_latency": 26.971249028794244,
+          "p99_latency": 40.12726663395716,
+          "container_utilization_rate": 28.116999999999997,
+          "resource_utilization_efficiency": 87.43047091809758,
+          "avg_wasted_memory_time": 0.0,
+          "avg_response_time": 8.352030048622327,
+          "sla_violation_rate": 61.133,
+          "throughput": 27.777822074516347,
+          "successful_execution_ratio": 100.0,
+          "energy_per_request": 0.001305004695097281,
+          "co2_estimate": 30.40660939576665,
+          "burst_handling_efficiency": 100.0,
+          "scaling_accuracy": 22.716000000000008,
+          "elasticity_score": 80.0,
+          "total_energy": 130.5004695097281,
+          "tpi": 48.473,
+          "agi": 20.77873414373409
+        }
+      },
+      "Significant": {
+        "CASR": {
+          "cold_start_rate": 91.892,
+          "avg_cold_start_overhead": 11.177836550235613,
+          "p95_latency": 30.044951595684363,
+          "p99_latency": 51.834729275504586,
+          "container_utilization_rate": 8.108,
+          "resource_utilization_efficiency": 84.47487041567778,
+          "avg_wasted_memory_time": 0.0,
+          "avg_response_time": 11.26386112478619,
+          "sla_violation_rate": 82.95,
+          "throughput": 27.77790320803226,
+          "successful_execution_ratio": 100.0,
+          "energy_per_request": 0.0017599783007477632,
+          "co2_estimate": 41.00749440742288,
+          "burst_handling_efficiency": 100.0,
+          "scaling_accuracy": 67.31052631578946,
+          "elasticity_score": 91.0,
+          "total_energy": 175.99783007477632,
+          "tpi": 38.664,
+          "agi": 0.0
+        },
+        "TASCAR": {
+          "cold_start_rate": 74.558,
+          "avg_cold_start_overhead": 11.474787591779975,
+          "p95_latency": 28.957411794149518,
+          "p99_latency": 49.73020868496683,
+          "container_utilization_rate": 25.441999999999997,
+          "resource_utilization_efficiency": 87.02341626094665,
+          "avg_wasted_memory_time": 0.0,
+          "avg_response_time": 9.547695694722684,
+          "sla_violation_rate": 67.45400000000001,
+          "throughput": 27.77790320803226,
+          "successful_execution_ratio": 100.0,
+          "energy_per_request": 0.0014918274523003769,
+          "co2_estimate": 34.75957963859878,
+          "burst_handling_efficiency": 100.0,
+          "scaling_accuracy": 22.716000000000008,
+          "elasticity_score": 80.0,
+          "total_energy": 149.18274523003768,
+          "tpi": 46.479,
+          "agi": 18.863448395943053
+        }
+      },
+      "Random": {
+        "CASR": {
+          "cold_start_rate": 85.675,
+          "avg_cold_start_overhead": 11.78519389008788,
+          "p95_latency": 34.22668233504484,
+          "p99_latency": 58.43120626103658,
+          "container_utilization_rate": 14.325,
+          "resource_utilization_efficiency": 85.37157980120685,
+          "avg_wasted_memory_time": 0.0,
+          "avg_response_time": 11.020835084616163,
+          "sla_violation_rate": 73.421,
+          "throughput": 27.77791600799144,
+          "successful_execution_ratio": 100.0,
+          "energy_per_request": 0.0017220054819711717,
+          "co2_estimate": 40.1227277299283,
+          "burst_handling_efficiency": 100.0,
+          "scaling_accuracy": 61.63999999999999,
+          "elasticity_score": 91.0,
+          "total_energy": 172.20054819711717,
+          "tpi": 42.258,
+          "agi": 0.0
+        },
+        "TASCAR": {
+          "cold_start_rate": 70.852,
+          "avg_cold_start_overhead": 12.460690739604091,
+          "p95_latency": 34.22668233504484,
+          "p99_latency": 58.43120626103658,
+          "container_utilization_rate": 29.148000000000003,
+          "resource_utilization_efficiency": 87.58837667216179,
+          "avg_wasted_memory_time": 0.0,
+          "avg_response_time": 9.752518822107852,
+          "sla_violation_rate": 60.187000000000005,
+          "throughput": 27.77791600799144,
+          "successful_execution_ratio": 100.0,
+          "energy_per_request": 0.001523831065954187,
+          "co2_estimate": 35.50526383673256,
+          "burst_handling_efficiency": 100.0,
+          "scaling_accuracy": 22.716000000000008,
+          "elasticity_score": 80.0,
+          "total_energy": 152.3831065954187,
+          "tpi": 48.943,
+          "agi": 17.301429822001744
+        }
+      }
+    },
+    "123": {
+      "Common": {
+        "CASR": {
+          "cold_start_rate": 89.503,
+          "avg_cold_start_overhead": 10.085845210672087,
+          "p95_latency": 28.367296784955986,
+          "p99_latency": 42.97160566462911,
+          "container_utilization_rate": 10.497,
+          "resource_utilization_efficiency": 84.81721042992957,
+          "avg_wasted_memory_time": 0.0,
+          "avg_response_time": 10.024476552922803,
+          "sla_violation_rate": 77.084,
+          "throughput": 27.777822074516347,
+          "successful_execution_ratio": 100.0,
+          "energy_per_request": 0.001566324461394316,
+          "co2_estimate": 36.49535995048757,
+          "burst_handling_efficiency": 100.0,
+          "scaling_accuracy": 80.67368421052632,
+          "elasticity_score": 91.0,
+          "total_energy": 156.6324461394316,
+          "tpi": 40.486,
+          "agi": 0.0
+        },
+        "TASCAR": {
+          "cold_start_rate": 71.848,
+          "avg_cold_start_overhead": 10.236244326798152,
+          "p95_latency": 26.971249028794244,
+          "p99_latency": 40.12726663395716,
+          "container_utilization_rate": 28.152,
+          "resource_utilization_efficiency": 87.43582210666884,
+          "avg_wasted_memory_time": 0.0,
+          "avg_response_time": 8.351879337933218,
+          "sla_violation_rate": 61.133,
+          "throughput": 27.777822074516347,
+          "successful_execution_ratio": 100.0,
+          "energy_per_request": 0.0013049811465521064,
+          "co2_estimate": 30.40606071466408,
+          "burst_handling_efficiency": 100.0,
+          "scaling_accuracy": 17.401999999999997,
+          "elasticity_score": 80.0,
+          "total_energy": 130.49811465521063,
+          "tpi": 48.482,
+          "agi": 19.725595790085247
+        }
+      },
+      "Significant": {
+        "CASR": {
+          "cold_start_rate": 93.692,
+          "avg_cold_start_overhead": 11.157067081798017,
+          "p95_latency": 30.189862357063795,
+          "p99_latency": 51.834729275504586,
+          "container_utilization_rate": 6.308,
+          "resource_utilization_efficiency": 84.21875315833415,
+          "avg_wasted_memory_time": 0.0,
+          "avg_response_time": 11.445602852321871,
+          "sla_violation_rate": 84.566,
+          "throughput": 27.77790320803226,
+          "successful_execution_ratio": 100.0,
+          "energy_per_request": 0.001788375445675209,
+          "co2_estimate": 41.66914788423237,
+          "burst_handling_efficiency": 100.0,
+          "scaling_accuracy": 64.79599999999999,
+          "elasticity_score": 95.0,
+          "total_energy": 178.8375445675209,
+          "tpi": 37.852,
+          "agi": 0.0
+        },
+        "TASCAR": {
+          "cold_start_rate": 74.558,
+          "avg_cold_start_overhead": 11.474787591779975,
+          "p95_latency": 28.957411794149518,
+          "p99_latency": 49.73020868496683,
+          "container_utilization_rate": 25.441999999999997,
+          "resource_utilization_efficiency": 87.02341626094665,
+          "avg_wasted_memory_time": 0.0,
+          "avg_response_time": 9.547695694722684,
+          "sla_violation_rate": 67.45400000000001,
+          "throughput": 27.77790320803226,
+          "successful_execution_ratio": 100.0,
+          "energy_per_request": 0.0014918274523003769,
+          "co2_estimate": 34.75957963859878,
+          "burst_handling_efficiency": 100.0,
+          "scaling_accuracy": 17.401999999999997,
+          "elasticity_score": 80.0,
+          "total_energy": 149.18274523003768,
+          "tpi": 46.479,
+          "agi": 20.422234555778495
+        }
+      },
+      "Random": {
+        "CASR": {
+          "cold_start_rate": 90.081,
+          "avg_cold_start_overhead": 11.51844601243384,
+          "p95_latency": 34.22668233504484,
+          "p99_latency": 58.43120626103658,
+          "container_utilization_rate": 9.919,
+          "resource_utilization_efficiency": 84.73412972130609,
+          "avg_wasted_memory_time": 0.0,
+          "avg_response_time": 11.299801571743894,
+          "sla_violation_rate": 76.793,
+          "throughput": 27.77791600799144,
+          "successful_execution_ratio": 100.0,
+          "energy_per_request": 0.0017655939955849053,
+          "co2_estimate": 41.13834009712829,
+          "burst_handling_efficiency": 100.0,
+          "scaling_accuracy": 66.22100000000002,
+          "elasticity_score": 90.0,
+          "total_energy": 176.55939955849053,
+          "tpi": 40.387,
+          "agi": 0.0
+        },
+        "TASCAR": {
+          "cold_start_rate": 70.838,
+          "avg_cold_start_overhead": 12.463046819124049,
+          "p95_latency": 34.22668233504484,
+          "p99_latency": 58.43120626103658,
+          "container_utilization_rate": 29.162,
+          "resource_utilization_efficiency": 87.59052480748808,
+          "avg_wasted_memory_time": 0.0,
+          "avg_response_time": 9.752443325014653,
+          "sla_violation_rate": 60.187000000000005,
+          "throughput": 27.77791600799144,
+          "successful_execution_ratio": 100.0,
+          "energy_per_request": 0.0015238192695333757,
+          "co2_estimate": 35.504988980127656,
+          "burst_handling_efficiency": 100.0,
+          "scaling_accuracy": 17.401999999999997,
+          "elasticity_score": 80.0,
+          "total_energy": 152.38192695333757,
+          "tpi": 48.947,
+          "agi": 21.36188541423831
+        }
+      }
+    },
+    "456": {
+      "Common": {
+        "CASR": {
+          "cold_start_rate": 90.525,
+          "avg_cold_start_overhead": 10.090009767773907,
+          "p95_latency": 28.441067929548243,
+          "p99_latency": 43.11324664440231,
+          "container_utilization_rate": 9.475,
+          "resource_utilization_efficiency": 84.67042038876444,
+          "avg_wasted_memory_time": 0.0,
+          "avg_response_time": 10.131323856292322,
+          "sla_violation_rate": 77.969,
+          "throughput": 27.777822074516347,
+          "successful_execution_ratio": 100.0,
+          "energy_per_request": 0.0015830193525458018,
+          "co2_estimate": 36.88435091431718,
+          "burst_handling_efficiency": 100.0,
+          "scaling_accuracy": 77.74333333333333,
+          "elasticity_score": 92.0,
+          "total_energy": 158.30193525458017,
+          "tpi": 40.031,
+          "agi": 0.0
+        },
+        "TASCAR": {
+          "cold_start_rate": 71.851,
+          "avg_cold_start_overhead": 10.237863932812182,
+          "p95_latency": 26.971249028794244,
+          "p99_latency": 40.12726663395716,
+          "container_utilization_rate": 28.149,
+          "resource_utilization_efficiency": 87.435363407696,
+          "avg_wasted_memory_time": 0.0,
+          "avg_response_time": 8.353350128380164,
+          "sla_violation_rate": 61.136,
+          "throughput": 27.777822074516347,
+          "successful_execution_ratio": 100.0,
+          "energy_per_request": 0.0013052109575594415,
+          "co2_estimate": 30.411415311134988,
+          "burst_handling_efficiency": 100.0,
+          "scaling_accuracy": 12.36,
+          "elasticity_score": 100.0,
+          "total_energy": 130.52109575594415,
+          "tpi": 48.481,
+          "agi": 20.62855564761116
+        }
+      },
+      "Significant": {
+        "CASR": {
+          "cold_start_rate": 93.625,
+          "avg_cold_start_overhead": 11.119314069546082,
+          "p95_latency": 30.044951595684363,
+          "p99_latency": 51.834729275504586,
+          "container_utilization_rate": 6.375,
+          "resource_utilization_efficiency": 84.2282585808845,
+          "avg_wasted_memory_time": 0.0,
+          "avg_response_time": 11.402781359656242,
+          "sla_violation_rate": 84.414,
+          "throughput": 27.77790320803226,
+          "successful_execution_ratio": 100.0,
+          "energy_per_request": 0.0017816845874462038,
+          "co2_estimate": 41.513250887496554,
+          "burst_handling_efficiency": 100.0,
+          "scaling_accuracy": 75.32666666666668,
+          "elasticity_score": 89.0,
+          "total_energy": 178.16845874462038,
+          "tpi": 37.901,
+          "agi": 0.0
+        },
+        "TASCAR": {
+          "cold_start_rate": 74.548,
+          "avg_cold_start_overhead": 11.468957024934745,
+          "p95_latency": 28.957411794149518,
+          "p99_latency": 49.73020868496683,
+          "container_utilization_rate": 25.452,
+          "resource_utilization_efficiency": 87.024930902304,
+          "avg_wasted_memory_time": 0.0,
+          "avg_response_time": 9.542201644991719,
+          "sla_violation_rate": 67.444,
+          "throughput": 27.77790320803226,
+          "successful_execution_ratio": 100.0,
+          "energy_per_request": 0.001490969007029914,
+          "co2_estimate": 34.739577863797,
+          "burst_handling_efficiency": 100.0,
+          "scaling_accuracy": 12.36,
+          "elasticity_score": 100.0,
+          "total_energy": 149.0969007029914,
+          "tpi": 46.483,
+          "agi": 20.375967957276366
+        }
+      },
+      "Random": {
+        "CASR": {
+          "cold_start_rate": 77.012,
+          "avg_cold_start_overhead": 12.23930972627007,
+          "p95_latency": 34.22668233504484,
+          "p99_latency": 58.43120626103658,
+          "container_utilization_rate": 22.988,
+          "resource_utilization_efficiency": 86.65331050318548,
+          "avg_wasted_memory_time": 0.0,
+          "avg_response_time": 10.34960742567866,
+          "sla_violation_rate": 65.81700000000001,
+          "throughput": 27.77791600799144,
+          "successful_execution_ratio": 100.0,
+          "energy_per_request": 0.0016171261602621453,
+          "co2_estimate": 37.679039534107986,
+          "burst_handling_efficiency": 100.0,
+          "scaling_accuracy": 55.217391304347814,
+          "elasticity_score": 87.0,
+          "total_energy": 161.71261602621453,
+          "tpi": 46.137,
+          "agi": 0.0
+        },
+        "TASCAR": {
+          "cold_start_rate": 70.841,
+          "avg_cold_start_overhead": 12.465430086755969,
+          "p95_latency": 34.22668233504484,
+          "p99_latency": 58.43120626103658,
+          "container_utilization_rate": 29.159000000000002,
+          "resource_utilization_efficiency": 87.59006448390512,
+          "avg_wasted_memory_time": 0.0,
+          "avg_response_time": 9.754505547042355,
+          "sla_violation_rate": 60.19,
+          "throughput": 27.77791600799144,
+          "successful_execution_ratio": 100.0,
+          "energy_per_request": 0.0015241414917252039,
+          "co2_estimate": 35.51249675719725,
+          "burst_handling_efficiency": 100.0,
+          "scaling_accuracy": 12.36,
+          "elasticity_score": 100.0,
+          "total_energy": 152.41414917252038,
+          "tpi": 48.946,
+          "agi": 8.013036929309726
+        }
+      }
+    }
+  }
+}
