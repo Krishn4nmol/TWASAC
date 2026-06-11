@@ -17,6 +17,8 @@ trained_model_tascar/
 trained_model_sac_only/
 trained_model_transformer_ppo/
 trained_model_casr_500/
+trained_model_tascar_seed123/
+trained_model_tascar_seed456/
 
 # Environment files
 .env

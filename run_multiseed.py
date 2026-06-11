@@ -74,14 +74,14 @@ SEED_CONFIGS = {
             'trained_model_tascar_seed123/',
         'results_path':
             'results_tascar_seed123/',
-        'already_trained': False,
+        'already_trained': True,
     },
     456: {
         'model_path':
             'trained_model_tascar_seed456/',
         'results_path':
             'results_tascar_seed456/',
-        'already_trained': False,
+        'already_trained': True,
     },
 }
 
@@ -1052,39 +1052,22 @@ def run_multiseed():
         print(
             f"{'='*50}")
 
-        # Train if needed
         if already_done:
             print(
                 f"Seed {seed} already "
-                f"trained! Loading...")
-            existing = (
-                results_path +
-                'casr_vs_tascar.json')
-            if os.path.exists(existing):
-                print(
-                    f"  Loading existing "
-                    f"results!")
-                with open(existing) as f:
-                    saved = json.load(f)
-                seed_results = {}
-                for wl in saved:
-                    if wl == 'rl_metrics':
-                        continue
-                    seed_results[wl] = {
-                        'CASR': saved[
-                            wl].get(
-                            'CASR', {}),
-                        'TASCAR': saved[
-                            wl].get(
-                            'TASCAR', {}),
-                    }
+                f"trained! Evaluating...")
+            # Skip training!
+            # Go straight to evaluation!
+            seed_results = evaluate_one_seed(
+                seed,
+                model_path,
+                results_path,
+                workloads)
+            if seed_results:
                 all_results[seed] = (
                     seed_results)
-                print(
-                    f"  Loaded! "
-                    f"Workloads: "
-                    f"{list(seed_results.keys())}")
-                continue
+            time.sleep(10)
+            continue
 
         # Train new seed
         train_one_seed(
