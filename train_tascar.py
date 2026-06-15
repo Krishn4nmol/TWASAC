@@ -553,6 +553,7 @@ class TASCARLogger:
 def warmup_buffer(agent,
                   train_data,
                   state_dim,
+                  data_rng,
                   warmup_episodes=20):
     """
     Fills replay buffer before training!
@@ -573,7 +574,7 @@ def warmup_buffer(agent,
         max_start = max(
             1,
             len(train_data) - EVAL_CALLS)
-        start_idx = np.random.randint(
+        start_idx = data_rng.randint(
             0, max_start)
         episode_calls = train_data[
             start_idx:
@@ -735,10 +736,12 @@ def train_tascar():
         transformer_dim=TRANSFORMER_DIM,
         action_dim=action_dim,
         transformer=transformer)
-
+    
+    data_rng = np.random.RandomState(42)
     warmup_buffer(
         agent, train_data,
         state_dim,
+        data_rng,
         warmup_episodes=20)
 
     reward_norm   = RewardNormalizer()
@@ -758,7 +761,7 @@ def train_tascar():
             1,
             len(train_data) -
             calls_per_ep)
-        start_idx = np.random.randint(
+        start_idx = data_rng.randint(
             0, max_start)
         episode_calls = train_data[
             start_idx:
