@@ -14,7 +14,7 @@ data/
 # Trained models
 trained_model*/
 
-# Environme files
+# Environmen files
 .env
 
 # VS Code settings
